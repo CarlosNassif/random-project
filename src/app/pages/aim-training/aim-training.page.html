@@ -1,0 +1,28 @@
+<ion-header>
+  <ion-toolbar>
+    <div>
+      <div>
+        <ion-title>aimTraining</ion-title>
+      </div>
+      <div>
+        <ion-title style="text-align: center;">Score: {{this.score}}</ion-title>
+      </div>
+      <div  style="display: flex; justify-content: flex-end;" >
+        <ion-buttons style="padding-right: 20px;">
+          <ion-button (click)="toggleTraining()"
+            >{{this.training?'PAUSE':'START'}}</ion-button
+          >
+        </ion-buttons>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="dark">
+  <button
+    *ngFor="let target of targets; let i = index;"
+    style="visibility: hidden;"
+    id="{{target.id}}"
+    (click)="remove($event, i)"
+  ></button>
+</ion-content>

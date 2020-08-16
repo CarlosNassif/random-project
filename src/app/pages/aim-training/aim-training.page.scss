@@ -1,0 +1,15 @@
+button:focus {
+  border: none;
+}
+
+button:hover{
+  cursor: crosshair;
+}
+
+
+div {
+  display: flex;
+  div {
+    flex: 1;
+  }
+}
