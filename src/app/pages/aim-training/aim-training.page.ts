@@ -51,6 +51,7 @@ export class AimTrainingPage implements OnInit {
       outline: none;
       `;
     }
+    this.training = false;
   }
 
   remove($event: MouseEvent, i: number) {
