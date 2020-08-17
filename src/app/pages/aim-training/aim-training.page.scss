@@ -6,6 +6,10 @@ button:hover{
   cursor: crosshair;
 }
 
+button {
+  background-image: radial-gradient(purple,pink);
+}
+
 
 div {
   display: flex;

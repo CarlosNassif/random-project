@@ -39,7 +39,7 @@ export class AimTrainingPage implements OnInit {
       // console.log(this.targets);
       await pause(this.delay);
       const element = document.getElementById(id);
-      element.style.cssText = `
+      element.style.cssText += `
       visibility: visible;
       position: absolute;
       left: ${x}px;
@@ -47,7 +47,6 @@ export class AimTrainingPage implements OnInit {
       height: ${diam}px;
       width: ${diam}px;
       border-radius: ${diam}px;
-      background: wheat;
       outline: none;
       `;
     }
@@ -68,7 +67,7 @@ export class AimTrainingPage implements OnInit {
       (target.diam / 2);
 
     this.score += Math.floor(
-      Number((target.diam / error).toPrecision(2)) * 100
+      100/Number((target.diam / error).toPrecision(2))
     );
     // console.log('pos:', target.pos);
     // console.log('click:', { x: clickX, y: clickY });
