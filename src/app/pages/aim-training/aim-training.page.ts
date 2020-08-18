@@ -1,5 +1,6 @@
 import { Component, OnInit, ɵConsole } from '@angular/core';
 import { Target } from 'src/app/classes/target';
+import { AlertController, LoadingController } from '@ionic/angular';
 
 @Component({
   selector: 'app-aim-training',
@@ -11,22 +12,31 @@ export class AimTrainingPage implements OnInit {
 
   training: boolean = false;
 
-  delay: number = 500;
-  minDiam: number = 20;
-  maxDiam: number = 50;
-  targetToKill: number = 20;
-  targetNumber: number = this.targetToKill;
+  delay: number;
+  diam: number;
+  targetsToKill: number;
+  targetsNumber: number;
 
   score: number = 0;
+  scoreAdd: number;
 
-  constructor() {}
+  constructor(
+    private alertController: AlertController,
+    private loadingController: LoadingController
+  ) {}
 
-  ngOnInit() {}
+  async ngOnInit() {
+    // const c = await this.loadingController.create();
+    // c.present();
+    // await pause(500);
+    // c.dismiss();
+    this.showMenu();
+  }
 
   async generateTargets() {
-    while (this.training && this.targetNumber >= 0) {
+    while (this.training && this.targetsNumber >= 0) {
       // console.log('Target Created!');
-      const diam = getRandomArbitrary(this.minDiam, this.maxDiam);
+      const diam = this.diam;
       const y = getRandomArbitrary(100 + diam, window.innerHeight - diam * 4);
       const x = getRandomArbitrary(0 + diam, window.innerWidth - diam * 4);
       const id = getRandomArbitrary(0, 2000).toString();
@@ -34,6 +44,7 @@ export class AimTrainingPage implements OnInit {
         id,
         pos: { x, y },
         diam,
+        born: Date.now() + this.delay,
       };
       this.targets.push(target);
       // console.log(this.targets);
@@ -49,8 +60,14 @@ export class AimTrainingPage implements OnInit {
       border-radius: ${diam}px;
       outline: none;
       `;
+      this.targetsNumber--;
+      setTimeout(() => {
+        this.targets.shift();
+      }, this.delay * 2);
     }
     this.training = false;
+    await pause(this.delay);
+    this.showScore();
   }
 
   remove($event: MouseEvent, i: number) {
@@ -59,25 +76,33 @@ export class AimTrainingPage implements OnInit {
     const clickY: number = $event.clientY;
 
     const target = this.targets[i];
+    console.log('pos:', target.pos);
     target.pos.x += target.diam / 2;
     target.pos.y += target.diam;
 
-    const error: number =
-      Math.sqrt((target.pos.x - clickX) ** 2 + (target.pos.y - clickY) ** 2) /
-      (target.diam / 2);
-
-    this.score += Math.floor(
-      100/Number((target.diam / error).toPrecision(2))
+    const dist: number = Math.sqrt(
+      (target.pos.x - clickX) ** 2 + (target.pos.y - clickY) ** 2
     );
-    // console.log('pos:', target.pos);
+
+    const time: number = Date.now() - target.born;
+
+    console.log('Time:', time);
+
+    const error: number = (dist / (target.diam / 2)) * (time / 1000);
+
+    this.score += Math.min(
+      Math.floor(this.scoreAdd / error),
+      this.scoreAdd * 10
+    );
     // console.log('click:', { x: clickX, y: clickY });
+    // console.log('pos:', target.pos);
 
     // console.log('error:', error);
+    // this.targets.splice(i, 1);
 
-    this.targets.splice(i, 1);
+    document.getElementById(target.id).style.cssText = 'visibility: hidden;';
 
-    console.log('Your score:', this.score);
-    this.targetNumber--;
+    // console.log('Your score:', this.score);
   }
 
   toggleTraining() {
@@ -85,9 +110,96 @@ export class AimTrainingPage implements OnInit {
       this.training = false;
     } else {
       this.training = true;
-      this.targetNumber = this.targetToKill;
+      this.targets = [];
+      this.score = 0;
+      this.targetsNumber = this.targetsToKill;
       this.generateTargets();
     }
+  }
+
+  showMenu() {
+    this.alertController
+      .create({
+        header: 'Difficulty',
+        buttons: [
+          {
+            text: 'WARM UP',
+            handler: this.warmUp.bind(this),
+          },
+          {
+            text: 'HARD',
+            handler: this.hardMode.bind(this),
+          },
+          {
+            text: 'NORMAL',
+            handler: this.normalMode.bind(this),
+          },
+          {
+            text: 'EASY',
+            handler: this.easyMode.bind(this),
+          },
+        ],
+      })
+      .then((e) => e.present());
+  }
+
+  showScore() {
+    this.alertController
+      .create({
+        header: 'Your Score:',
+        message: this.score.toString(),
+        buttons: [
+          {
+            text: 'NICE',
+          },
+          {
+            text: 'TRY AGAIN',
+            handler: this.toggleTraining.bind(this),
+          },
+        ],
+      })
+      .then((e) => e.present());
+  }
+
+  easyMode() {
+    this.setValues(1500, 70, 10, 10);
+  }
+
+  normalMode() {
+    this.setValues(1000, 50, 20, 20);
+  }
+
+  hardMode() {
+    this.setValues(750, 30, 30, 40);
+  }
+
+  warmUp() {
+    this.setValues(1250, 50, 100, 15);
+    setTimeout(() => {
+      this.setValues(1000, 45, 100, 20);
+      setTimeout(() => {
+        this.setValues(750, 40, 100, 40);
+        setTimeout(() => {
+          this.setValues(500, 40, 100, 100);
+        }, 10000);
+      }, 10000);
+    }, 10000);
+  }
+
+  setValues(de: number, di: number, ttk: number, sA: number) {
+    this.delay = de;
+    this.diam = di;
+    this.targetsToKill = ttk;
+    this.targetsNumber = ttk;
+    this.scoreAdd = sA;
+    this.startTraining();
+  }
+
+  startTraining() {
+    if (this.training) {
+      return;
+    }
+    this.toggleTraining();
   }
 }
 
